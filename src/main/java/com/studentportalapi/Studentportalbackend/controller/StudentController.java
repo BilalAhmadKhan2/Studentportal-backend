@@ -89,7 +89,7 @@ public class StudentController {
         Student existingStudent = optionalStudent.get();
         if (studentRepository.existsByEmail(email)) {
             if (!existingStudent.getEmail().equals(email)) {
-                return new ResponseEntity<>("Email already registered", HttpStatus.CONFLICT);
+                return new ResponseEntity<>("Email already registered!", HttpStatus.CONFLICT);
             }
         }
 
