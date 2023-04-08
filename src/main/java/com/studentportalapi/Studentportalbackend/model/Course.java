@@ -16,8 +16,6 @@ public class Course {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
-    private Double fee;
 
     public Long getCourseid() {
         return courseid;
@@ -40,13 +38,7 @@ public class Course {
         this.description = description;
     }
 
-    public Double getFee() {
-        return fee;
-    }
 
-    public void setFee(Double fee) {
-        this.fee = fee;
-    }
 
 
 }
