@@ -47,5 +47,7 @@ public class Course {
     public void setFee(Double fee) {
         this.fee = fee;
     }
+
+
 }
 

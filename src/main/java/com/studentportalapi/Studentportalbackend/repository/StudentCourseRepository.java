@@ -5,6 +5,7 @@ import com.studentportalapi.Studentportalbackend.model.StudentCourse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -13,4 +14,6 @@ import java.util.Optional;
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, Long> {
     Long countByStudentId(Long studentId);
     Optional<StudentCourse> findByStudentIdAndCourseCourseid(Long studentId, Long courseId);
+
+    List<StudentCourse> findByStudentId(Long studentId);
 }

@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -62,4 +66,24 @@ public class SelectCourseController {
 
         return new ResponseEntity<>("Course enrollment completed", HttpStatus.OK);
     }
+    @GetMapping("/selectedcourses/{studentId}")
+    public ResponseEntity<List<Course>> getSelectedCourses(@PathVariable Long studentId) {
+        // Check if student exists
+        Optional<Student> studentOptional = studentRepository.findById(studentId);
+        if (studentOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found");
+        }
+
+        // Get the selected courses for the student
+        List<StudentCourse> studentCourses = studentCourseRepository.findByStudentId(studentId);
+        List<Course> courses = new ArrayList<>();
+        for (StudentCourse studentCourse : studentCourses) {
+            Course course = studentCourse.getCourse();
+            courses.add(course);
+        }
+
+        return new ResponseEntity<>(courses, HttpStatus.OK);
+    }
+
+
 }
