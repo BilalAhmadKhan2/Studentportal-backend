@@ -1,5 +1,6 @@
 package com.studentportalapi.Studentportalbackend.controller;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -50,14 +51,20 @@ public class StudentController {
         studentRepository.save(student);
         return new ResponseEntity<>("Account created successfully", HttpStatus.CREATED);
     }
+
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/Login")
-    public ResponseEntity<String> loginStudent(@RequestBody Student student) {
+    public ResponseEntity<Map<String, Object>> loginStudent(@RequestBody Student student) {
         Student savedStudent = studentRepository.findByEmail(student.getEmail());
         if (savedStudent == null || !passwordEncoder.matches(student.getPassword(), savedStudent.getPassword())) {
-            return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(Collections.singletonMap("message", "Invalid email or password"), HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>("Login successful", HttpStatus.OK);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Login successful");
+        response.put("studentId", savedStudent.getId());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
 
     @PutMapping("/editname/{id}")

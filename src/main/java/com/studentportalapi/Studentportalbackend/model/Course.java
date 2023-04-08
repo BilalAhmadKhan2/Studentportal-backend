@@ -19,6 +19,10 @@ public class Course {
     @Column(nullable = false)
     private Double fee;
 
+    public Long getCourseid() {
+        return courseid;
+    }
+
 
     public String getName() {
         return name;
