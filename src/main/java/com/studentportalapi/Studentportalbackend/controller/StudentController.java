@@ -34,38 +34,49 @@ public class StudentController {
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
     }
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/register")
     public ResponseEntity<String> registerStudent(@RequestBody Student student) {
 
+        String name = student.getName();
         String email = student.getEmail();
-        if (!isValidEmail(email)) {
+        String password = student.getPassword();
+
+        if (name == null || name.trim().isEmpty()) {
+            return new ResponseEntity<>("Name cannot be empty", HttpStatus.BAD_REQUEST);
+        }
+        if (email == null || email.trim().isEmpty() || !isValidEmail(email)) {
             return new ResponseEntity<>("Invalid email format", HttpStatus.BAD_REQUEST);
         }
-        if(studentRepository.existsByEmail(student.getEmail())) {
+        if (password == null || password.trim().isEmpty()) {
+            return new ResponseEntity<>("Password cannot be empty", HttpStatus.BAD_REQUEST);
+        }
+        if(studentRepository.existsByEmail(email)) {
             return new ResponseEntity<>("Email already registered", HttpStatus.CONFLICT);
         }
 
-        String encodedPassword = passwordEncoder.encode(student.getPassword());
+        String encodedPassword = passwordEncoder.encode(password);
         student.setPassword(encodedPassword);
 
         studentRepository.save(student);
         return new ResponseEntity<>("Account created successfully", HttpStatus.CREATED);
     }
 
+
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/Login")
     public ResponseEntity<Map<String, Object>> loginStudent(@RequestBody Student student) {
+        if(student.getEmail() == null || student.getEmail().isEmpty() || student.getPassword() == null || student.getPassword().isEmpty()) {
+            return new ResponseEntity<>(Collections.singletonMap("message", "Email or password is empty"), HttpStatus.BAD_REQUEST);
+        }
         Student savedStudent = studentRepository.findByEmail(student.getEmail());
         if (savedStudent == null || !passwordEncoder.matches(student.getPassword(), savedStudent.getPassword())) {
             return new ResponseEntity<>(Collections.singletonMap("message", "Invalid email or password"), HttpStatus.UNAUTHORIZED);
         }
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Login successful");
-        response.put("studentId", savedStudent.getId());
+        response.put("studentId",savedStudent.getId());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-
 
     @PutMapping("/editname/{id}")
     public ResponseEntity<String> updateStudentName(@PathVariable Long id, @RequestBody Student updatedStudent) {
@@ -119,7 +130,7 @@ public class StudentController {
             return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
         }
     }
-
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getstudentdata/{id}")
     public ResponseEntity<Map<String, Object>> getStudentDetails(@PathVariable Long id) {
         Optional<Student> optionalStudent = studentRepository.findById(id);

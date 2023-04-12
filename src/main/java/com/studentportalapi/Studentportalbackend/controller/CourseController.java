@@ -48,6 +48,7 @@ public class CourseController {
         if (optionalCourse.isPresent()) {
             Course existingCourse = optionalCourse.get();
             existingCourse.setName(course.getName());
+            existingCourse.setFee(course.getFee());
             existingCourse.setDescription(course.getDescription());
             Course updatedCourse = courseRepository.save(existingCourse);
             return new ResponseEntity<>(updatedCourse, HttpStatus.OK);
