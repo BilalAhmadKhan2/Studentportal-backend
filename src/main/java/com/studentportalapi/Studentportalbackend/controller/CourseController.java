@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+
 @RequestMapping("/courseAPI")
 public class CourseController {
 
@@ -26,7 +27,7 @@ public class CourseController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getallcoursesdata")
     public List<Course> getAllCourses() {
         return courseRepository.findAll();

@@ -12,8 +12,10 @@ import java.util.Optional;
 
 @Repository
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, Long> {
-    Long countByStudentId(Long studentId);
-    Optional<StudentCourse> findByStudentIdAndCourseCourseid(Long studentId, Long courseId);
 
-    List<StudentCourse> findByStudentId(Long studentId);
+    Long countByStudentExternalId(String externalId);
+
+    Optional<StudentCourse> findByStudentExternalIdAndCourseCourseid(String externalId, Long courseId);
+
+    List<StudentCourse> findByStudentExternalId(String externalId);
 }

@@ -1,9 +1,6 @@
 package com.studentportalapi.Studentportalbackend.controller;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+
 @RequestMapping("/studentAPI")
 public class StudentController {
 
@@ -55,12 +53,28 @@ public class StudentController {
             return new ResponseEntity<>("Email already registered", HttpStatus.CONFLICT);
         }
 
+        // Generate a unique external ID for the new student with only numbers after "c"
+        String externalId = "c";
+        Random rand = new Random();
+        for (int i = 1; i < 8; i++) {
+            externalId += rand.nextInt(10);
+        }
+        while (studentRepository.existsByExternalId(externalId)) {
+            externalId = "c";
+            for (int i = 1; i < 8; i++) {
+                externalId += rand.nextInt(10);
+            }
+        }
+        student.setExternalId(externalId);
+
         String encodedPassword = passwordEncoder.encode(password);
         student.setPassword(encodedPassword);
 
         studentRepository.save(student);
         return new ResponseEntity<>("Account created successfully", HttpStatus.CREATED);
     }
+
+
 
 
     @CrossOrigin(origins = "http://localhost:3000")
@@ -74,15 +88,15 @@ public class StudentController {
             return new ResponseEntity<>(Collections.singletonMap("message", "Invalid email or password"), HttpStatus.UNAUTHORIZED);
         }
         Map<String, Object> response = new HashMap<>();
-        response.put("studentId",savedStudent.getId());
+        response.put("studentId", savedStudent.getExternalId()); // Send the externalId field as the studentId
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PutMapping("/editname/{id}")
-    public ResponseEntity<String> updateStudentName(@PathVariable Long id, @RequestBody Student updatedStudent) {
-        Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (optionalStudent.isPresent()) {
-            Student student = optionalStudent.get();
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PutMapping("/editname/{externalId}")
+    public ResponseEntity<String> updateStudentName(@PathVariable String externalId, @RequestBody Student updatedStudent) {
+        Student student = studentRepository.findByExternalId(externalId);
+        if (student != null) {
             student.setName(updatedStudent.getName());
             studentRepository.save(student);
             return new ResponseEntity<>("Name updated successfully", HttpStatus.OK);
@@ -92,10 +106,11 @@ public class StudentController {
     }
 
 
-    @PutMapping("/editemail/{id}")
-    public ResponseEntity<String> updateStudentEmail(@PathVariable Long id, @RequestBody Student student) {
-        Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (!optionalStudent.isPresent()) {
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PutMapping("/editemail/{externalId}")
+    public ResponseEntity<String> updateStudentEmail(@PathVariable String externalId, @RequestBody Student student) {
+        Student existingStudent = studentRepository.findByExternalId(externalId);
+        if (existingStudent == null) {
             return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
         }
 
@@ -104,7 +119,6 @@ public class StudentController {
             return new ResponseEntity<>("Invalid email format", HttpStatus.BAD_REQUEST);
         }
 
-        Student existingStudent = optionalStudent.get();
         if (studentRepository.existsByEmail(email)) {
             if (!existingStudent.getEmail().equals(email)) {
                 return new ResponseEntity<>("Email already registered!", HttpStatus.CONFLICT);
@@ -117,11 +131,11 @@ public class StudentController {
         return new ResponseEntity<>("Email updated successfully", HttpStatus.OK);
     }
 
-    @PutMapping("/editpassword/{id}")
-    public ResponseEntity<String> updateStudentPassword(@PathVariable Long id, @RequestBody String password) {
-        Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (optionalStudent.isPresent()) {
-            Student student = optionalStudent.get();
+
+    @PutMapping("/editpassword/{externalId}")
+    public ResponseEntity<String> updateStudentPassword(@PathVariable String externalId, @RequestBody String password) {
+        Student student = studentRepository.findByExternalId(externalId);
+        if (student != null) {
             String encodedPassword = passwordEncoder.encode(password);
             student.setPassword(encodedPassword);
             studentRepository.save(student);
@@ -130,21 +144,23 @@ public class StudentController {
             return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
         }
     }
+
     @CrossOrigin(origins = "http://localhost:3000")
-    @GetMapping("/getstudentdata/{id}")
-    public ResponseEntity<Map<String, Object>> getStudentDetails(@PathVariable Long id) {
-        Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (optionalStudent.isPresent()) {
-            Student student = optionalStudent.get();
+    @GetMapping("/getstudentdata/{externalId}")
+    public ResponseEntity<Map<String, Object>> getStudentDetails(@PathVariable String externalId) {
+        Student student = studentRepository.findByExternalId(externalId);
+        if (student != null) {
             Map<String, Object> response = new HashMap<>();
-            response.put("id", student.getId());
             response.put("name", student.getName());
             response.put("email", student.getEmail());
+            response.put("externalId", student.getExternalId()); // Add externalId to the response
             return new ResponseEntity<>(response, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+
 
 
 }

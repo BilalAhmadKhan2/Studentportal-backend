@@ -29,15 +29,14 @@ public class SelectCourseController {
 
     @Autowired
     private StudentCourseRepository studentCourseRepository;
-
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/select")
-    public ResponseEntity<String> selectCourse(@RequestBody Map<String, Long> requestData) {
-        Long studentId = requestData.get("studentId");
-        Long courseId = requestData.get("courseId");
+    public ResponseEntity<String> selectCourse(@RequestBody Map<String, Object> requestData, @RequestParam String externalId) {
+        Student student = studentRepository.findByExternalId(externalId);
+        Long courseId = ((Number) requestData.get("courseId")).longValue();
 
         // Check if student exists
-        Optional<Student> studentOptional = studentRepository.findById(studentId);
-        if (studentOptional.isEmpty()) {
+        if (student == null) {
             return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
         }
 
@@ -48,34 +47,39 @@ public class SelectCourseController {
         }
 
         // Check if student already selected 3 courses
-        Long selectedCoursesCount = studentCourseRepository.countByStudentId(studentId);
+        Long selectedCoursesCount = studentCourseRepository.countByStudentExternalId(externalId);
         if (selectedCoursesCount >= 3) {
             return new ResponseEntity<>("Cannot enroll in more than 3 courses", HttpStatus.BAD_REQUEST);
         }
         // Check if student already selected this course
-        Optional<StudentCourse> studentCourseOptional = studentCourseRepository.findByStudentIdAndCourseCourseid(studentId, courseId);
+        Optional<StudentCourse> studentCourseOptional = studentCourseRepository.findByStudentExternalIdAndCourseCourseid(externalId, courseId);
         if (studentCourseOptional.isPresent()) {
             return new ResponseEntity<>("You are already enrolled in the course", HttpStatus.BAD_REQUEST);
         }
 
         // Save the selected course
         StudentCourse studentCourse = new StudentCourse();
-        studentCourse.setStudent(studentOptional.get());
+        studentCourse.setStudent(student);
         studentCourse.setCourse(courseOptional.get());
         studentCourseRepository.save(studentCourse);
 
         return new ResponseEntity<>("Course enrollment completed", HttpStatus.OK);
     }
-    @GetMapping("/selectedcourses/{studentId}")
-    public ResponseEntity<List<Course>> getSelectedCourses(@PathVariable Long studentId) {
+
+
+
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("/selectedcourses/{externalId}")
+    public ResponseEntity<List<Course>> getSelectedCourses(@PathVariable String externalId) {
+        Student student = studentRepository.findByExternalId(externalId);
         // Check if student exists
-        Optional<Student> studentOptional = studentRepository.findById(studentId);
-        if (studentOptional.isEmpty()) {
+        if (student == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found");
         }
 
         // Get the selected courses for the student
-        List<StudentCourse> studentCourses = studentCourseRepository.findByStudentId(studentId);
+        List<StudentCourse> studentCourses = studentCourseRepository.findByStudentExternalId(externalId);
         List<Course> courses = new ArrayList<>();
         for (StudentCourse studentCourse : studentCourses) {
             Course course = studentCourse.getCourse();
@@ -84,6 +88,7 @@ public class SelectCourseController {
 
         return new ResponseEntity<>(courses, HttpStatus.OK);
     }
+
 
 
 }
