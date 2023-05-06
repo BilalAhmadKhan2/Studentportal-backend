@@ -2,7 +2,6 @@ package com.studentportalapi.Studentportalbackend.model;
 
 import jakarta.persistence.*;
 
-
 @Entity
 @Table(name = "studentdata")
 public class Student {
@@ -22,6 +21,15 @@ public class Student {
 
     @Column(name = "external_id", nullable = false, unique = true)
     private String externalId;
+
+    @Column(name = "graduation_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private GraduationStatus graduationStatus = GraduationStatus.NOT_GRADUATED;
+
+    public enum GraduationStatus {
+        GRADUATED,
+        NOT_GRADUATED
+    }
 
     public Long getId() {
         return id;
@@ -62,6 +70,12 @@ public class Student {
     public void setExternalId(String externalId) {
         this.externalId = externalId;
     }
+
+    public GraduationStatus getGraduationStatus() {
+        return graduationStatus;
+    }
+
+    public void setGraduationStatus(GraduationStatus graduationStatus) {
+        this.graduationStatus = graduationStatus;
+    }
 }
-
-

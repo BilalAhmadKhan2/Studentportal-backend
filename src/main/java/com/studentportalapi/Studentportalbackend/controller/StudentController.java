@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.client.RestTemplate;
 
 
 @RestController
@@ -25,6 +25,8 @@ public class StudentController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RestTemplate restTemplate;
 
     private boolean isValidEmail(String email) {
         String regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
@@ -66,11 +68,17 @@ public class StudentController {
             }
         }
         student.setExternalId(externalId);
+        student.setGraduationStatus(Student.GraduationStatus.NOT_GRADUATED);
 
         String encodedPassword = passwordEncoder.encode(password);
         student.setPassword(encodedPassword);
 
         studentRepository.save(student);
+        // Send the newly created externalId to the specified API endpoint
+        String apiEndpoint = "http://localhost:8082/api/register";
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("studentId", externalId);
+        restTemplate.postForObject(apiEndpoint, requestBody, String.class);
         return new ResponseEntity<>("Account created successfully", HttpStatus.CREATED);
     }
 
